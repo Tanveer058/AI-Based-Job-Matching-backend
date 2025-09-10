@@ -232,13 +232,14 @@ export const createResume = async (req, res) => {
 };
 
 
+
 export const uploadResume = async (req, res) => {
   try {
-    const resumeUrl = req.file.path;
     const file = req.file;
-    const { userId, email } = req.body;
+    const email = req.body.email;
+    const userId = req.user.userId; // Get userId from auth middleware
 
-    if (!userId || !email || !resumeUrl) {
+    if (!userId || !email || !file || !file.path) {
       return res.status(400).json({ error: 'Missing required fields.' });
     }
 
@@ -246,13 +247,14 @@ export const uploadResume = async (req, res) => {
       userId,
       email,
       resumeFile: {
-        filename: req.file.originalname,
-        mimetype: req.file.mimetype,
-        path: file.secure_url, // always publicly accessible
-        public_id: file.filename
+        filename: file.originalname,
+        mimetype: file.mimetype,
+        path: file.path, // Cloudinary secure URL
+        public_id: file.filename // Cloudinary public_id
       }
     });
-console.log('Cloudinary file:', req.file);
+
+    console.log('Cloudinary file:', file);
 
     res.status(201).json(resume);
   } catch (err) {
@@ -260,6 +262,7 @@ console.log('Cloudinary file:', req.file);
     res.status(500).json({ error: 'Resume upload failed', details: err.message });
   }
 };
+
 
 
 export const getResume = async (req, res) => {
